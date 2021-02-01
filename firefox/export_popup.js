@@ -7,13 +7,6 @@ function handleButtonClick(e) {
     });
 }
 
-// function addButtonClickEvents() {
-//     let buttons = document.getElementsByClassName("get-cookie-store");
-//     for (button of buttons) {
-//         button.addEventListener("click",
-//     });
-// }
-
 function handleMessage(req, sender, sendResponse) {
     if (req.action == "send_envs") {
         // console.log("Got send_envs", req.envs);
