@@ -169,18 +169,28 @@ function getCookiesByStoreId(store_id) {
 }
 
 function handleMessage(req, sender, sendResponse) {
-    if (req.action == "get_contexts") {
+    if (req.action == "get_envs") {
         // use contextualIdentities (environments like work, leisure etc.)
         // they have cookieStoreId field
-        browser.contextualIdentities.query({}).then((contexts) => {
-            browser.runtime.sendMessage({ action: "send_contexts",
-                                          contexts: contexts });
-        });
-    } else if (req.action == "get_stores") {
+        let getting_ctxs = browser.contextualIdentities.query({});
         // resolve promise
-        browser.cookies.getAllCookieStores().then((stores) => {
-            browser.runtime.sendMessage({ action: "send_stores",
-                                          stores: stores });
+        let getting_stores = browser.cookies.getAllCookieStores();
+
+        Promise.all([getting_stores, getting_ctxs]).then((results) => {
+            let stores, contexts;
+            [stores, contexts] = results;
+
+            let store_id_to_ctx = {};
+            for (ctx of contexts) {
+                store_id_to_ctx[ctx.cookieStoreId] = ctx;
+            }
+            let env_arr = [];
+            for (store of stores) {
+                // ctx will be undefined if store.id has no context in store_id_to_ctx
+                env_arr.push({ store: store, ctx: store_id_to_ctx[store.id] });
+            }
+            browser.runtime.sendMessage({ action: "send_envs",
+                                          envs: env_arr });
         });
     } else if (req.action == "get_cookies") {
         getCookiesByStoreId(req.store_id);

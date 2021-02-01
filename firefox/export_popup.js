@@ -15,8 +15,8 @@ function handleButtonClick(e) {
 // }
 
 function handleMessage(req, sender, sendResponse) {
-    if (req.action == "send_stores") {
-        console.log("Got send_stores", req.stores);
+    if (req.action == "send_envs") {
+        // console.log("Got send_envs", req.envs);
 
         let container = document.getElementById("container");
         // remove all previous
@@ -24,44 +24,30 @@ function handleMessage(req, sender, sendResponse) {
             container.removeChild(container.lastChild);
         }
 
-        for (store of req.stores) {
-            let button = document.createElement("div");
-            button.classList.add("button");
-            button.classList.add("get-cookie-store");
-            // add data-store-id attrib
-            button.dataset.storeId = store.id;
-            let textnode = document.createTextNode(store.id);
-            button.appendChild(textnode);
-
-            container.appendChild(button);
-            
-            // click event
-            button.addEventListener("click", handleButtonClick);
-        }
-    } else if (req.action == "send_contexts") {
         // apparently there are no contextualIdentities for default or private mode
         // so can't really use that
-        // alternatively we could pass the contexts along with the store
-        // and if the storeIds match then use the context for name and color
-        console.log("Got send_stores", req.contexts);
+        // but we can pass the contexts along with the store
+        for (env of req.envs) {
+            let store = env.store;
+            let ctx = env.ctx;
 
-        let container = document.getElementById("container");
-        // remove all previous
-        while (container.firstChild) {
-            container.removeChild(container.lastChild);
-        }
-
-        for (ctx of req.contexts) {
             let button = document.createElement("div");
             button.classList.add("button");
             button.classList.add("get-cookie-store");
-            // add data-store-id attrib
-            button.dataset.storeId = ctx.cookieStoreId;
-            button.style.backgroundColor = ctx.colorCode;
 
-            let textnode = document.createTextNode(ctx.name);
+            let textnode;
+            if (ctx) {
+                // add data-store-id attrib
+                button.dataset.storeId = ctx.cookieStoreId;
+                button.style.backgroundColor = ctx.colorCode;
+                textnode = document.createTextNode(ctx.name);
+            } else {
+                // add data-store-id attrib
+                button.dataset.storeId = store.id;
+                textnode = document.createTextNode(store.id);
+            }
+
             button.appendChild(textnode);
-
             container.appendChild(button);
             
             // click event
@@ -70,5 +56,5 @@ function handleMessage(req, sender, sendResponse) {
     }
 }
 browser.runtime.onMessage.addListener(handleMessage);
-browser.runtime.sendMessage({ action: "get_stores" });
+browser.runtime.sendMessage({ action: "get_envs" });
 
