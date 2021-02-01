@@ -24,6 +24,6 @@
     "default_popup": "export_popup.html"
   },
   
-  "permissions": ["cookies", "<all_urls>", "activeTab", "clipboardWrite"]
+  "permissions": ["cookies", "<all_urls>", "activeTab", "clipboardWrite", "contextualIdentities"]
 
 }
