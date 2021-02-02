@@ -1,4 +1,4 @@
-// http://www.cookiecentral.com/faq/ 3.5
+// http://www.cookiecentral.com/faq/#3.5
 // The layout of Netscape's cookies.txt file is such that each line contains
 // one name-value pair. An example cookies.txt file may have an entry that
 // looks like this:
@@ -18,17 +18,29 @@
 // value - The value of the variable.
 // 
 function generateNetscapeCookieFile(cookies, user_agent) {
-    // insert User-Agent that is needed to assume the browser's identity as
-    // a comment so it's still a valid cookies.txt
+    // insert User-Agent that is needed to assume the browser's identity (as far
+    // as DDoS protection is concerned) as a comment so it's still a valid cookies.txt
     let str_builder = [
         '# Netscape HTTP Cookie File',
         '# https://curl.haxx.se/rfc/cookie_spec.html',
         `# User-Agent: ${user_agent}`,
     ]
 
+    
     for (let cookie of cookies) {
+        let domain_prefix = (!cookie.hostOnly && cookie.domain.length > 0
+                             && cookie.domain[0] !== '.') ? '.' : '';
         str_builder.push([
-            cookie.domain,
+            // #HttpOnly_ prefix apparently not that widely supported
+            // TODO provide as option
+            // e.g. youtube-dl won't parse it properly
+            // hostOnly:
+            // A boolean, true if the cookie is a host-only cookie (i.e. the
+            // request's host must exactly match the domain of the cookie)
+            // -> no subdomains
+            // so the domain part should start with a dot if the cookie is valid for
+            // subdomains as well
+            `${domain_prefix}${cookie.domain}`,
             cookie.hostOnly ? 'FALSE' : 'TRUE',
             cookie.path,
             cookie.secure ? 'TRUE' : 'FALSE',
@@ -71,11 +83,18 @@ function getCookiesByStoreId(store_id) {
 
         if (!found_store) {
             console.log("No CookieStore with that Id");
+            browser.runtime.sendMessage({
+                action: "copy_cookies",
+                store_id: store_id,
+                success: false
+            });
             return;
         }
 
         let filtered_cookies_in_store = []
 
+        // technically we only need the cf_clearance cookie and the User-Agent header
+        // but let's get it anyway in case they change it
         let get_clearance_cookies = getCookiesByName(found_store.id, 'cf_clearance');
         let get_uid_cookies = getCookiesByName(found_store.id, '__cfduid');
 
@@ -88,11 +107,26 @@ function getCookiesByStoreId(store_id) {
             // use destructuring assignment to unpack the values
             let clearance_cookies, uid_cookies;
             [clearance_cookies, uid_cookies] = cookies
+
+            // since the __cfduid is useless without the cf_clearance cookie
+            // filter the duid cookies by having a clearance cookie for the same domain
+            let domain_to_cookie = {};
+            for (cl_cookie of clearance_cookies) {
+                domain_to_cookie[cl_cookie.domain] = 1;
+            }
+            // duid cookies that also have cf_clearance cookie counterpart
+            let uid_cookies_filtered = [];
+            for (uid_cookie of uid_cookies) {
+                if (uid_cookie.domain in domain_to_cookie) {
+                    uid_cookies_filtered.push(uid_cookie);
+                }
+            }
+            
             // extend arrya by unpacking cookies array with ... into push that
             // normally only takes one arg
             // filtered_cookies_in_store.push(...cookies);
             // or use concat
-            filtered_cookies_in_store = clearance_cookies.concat(uid_cookies);
+            filtered_cookies_in_store = clearance_cookies.concat(uid_cookies_filtered);
 
             if (filtered_cookies_in_store.length > 0) {
                 navigator.clipboard.writeText(
@@ -100,12 +134,28 @@ function getCookiesByStoreId(store_id) {
                         filtered_cookies_in_store, user_agent)).then(function() {
                             /* clipboard successfully set */
                             console.log("Cookies copied to clip!");
+                            browser.runtime.sendMessage({
+                                action: "copy_cookies",
+                                store_id: store_id,
+                                result: "success"
+                            });
                         }, function() {
                             /* clipboard write failed */
                             console.log("FAILED to copy cookies to clip!");
+                            browser.runtime.sendMessage({
+                                action: "copy_cookies",
+                                store_id: store_id,
+                                result: "fail"
+                            });
                         });
             } else {
                 console.log("No relevant cookies found in cookie store", found_store.id);
+                // don't send fail message otherwise user will be confused
+                browser.runtime.sendMessage({
+                    action: "copy_cookies",
+                    store_id: store_id,
+                    result: "no_cookies_found"
+                });
             }
 
         });

@@ -39,12 +39,28 @@ function handleMessage(req, sender, sendResponse) {
                 button.dataset.storeId = store.id;
                 textnode = document.createTextNode(store.id);
             }
+            button.id = store.id;
 
             button.appendChild(textnode);
             container.appendChild(button);
             
             // click event
             button.addEventListener("click", handleButtonClick);
+        }
+    } else if (req.action == "copy_cookies") {
+        let button = document.getElementById(req.store_id);
+        let res = req.result;
+        if (res === 'success') {
+            button.style.backgroundColor = 'green';
+            button.textContent = 'Copied to clip!';
+        } else if (res === 'fail') {
+            button.style.backgroundColor = 'red';
+            button.textContent = 'FAILED!';
+        } else {
+            // res === 'no_cookies'
+            button.style.backgroundColor = '#ffe82c';
+            button.style.color = '#515151';
+            button.textContent = 'No relevant cookies!';
         }
     }
 }
