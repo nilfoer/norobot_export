@@ -4,7 +4,10 @@
   "name": "NoRobot Exporter",
   "version": "0.1",
   "icons": {
-    "48": "ico/norobot.png"
+    "48": "ico/norobot_48.png",
+    "64": "ico/norobot_64.png",
+    "96": "ico/norobot_96.png",
+    "128": "ico/norobot_128.png"
   },
 
   "applications": {
@@ -19,7 +22,14 @@
 
   "browser_action": {
     "browser_style": true,
-    "default_icon": "ico/norobot.png",
+    "default_icon": {
+        "16": "ico/norobot_16.png",
+        "32": "ico/norobot_32.png",
+        "48": "ico/norobot_48.png",
+        "64": "ico/norobot_64.png",
+        "96": "ico/norobot_96.png",
+        "128": "ico/norobot_128.png"
+    },
     "default_title": "Export NoRobot info",
     "default_popup": "export_popup.html"
   },

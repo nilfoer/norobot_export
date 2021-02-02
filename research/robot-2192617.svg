@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="210mm" height="297mm" version="1.1" viewBox="0 0 744.09448819 1052.3622047" xmlns="http://www.w3.org/2000/svg">
+ <g stroke-width="0">
+  <circle cx="384.46" cy="524.32" r="600" fill="#1a1a1a"/>
+  <rect x="713.08" y="393.87" width="56.604" height="173.58" ry="18.191" fill="#37abc8"/>
+  <rect x="28.571" y="329.2" width="700" height="480.3" ry="0" fill="#247083"/>
+  <rect x="-11.919" y="393.87" width="56.604" height="173.58" ry="19.365" fill="#37abc8"/>
+  <rect x="28.571" y="329.22" width="350" height="480.29" ry="0" fill="#2c89a0"/>
+  <rect x="157.14" y="449.51" width="105.71" height="91.429" ry="45.714" fill="#1c241f"/>
+  <rect x="491.43" y="443.79" width="105.71" height="91.429" ry="45.714" fill="#1c241f"/>
+  <rect x="245.32" y="629.11" width="265.71" height="114.29" ry="57.143" fill="#1c241f"/>
+  <rect x="378.41" y="617.01" width="143.84" height="68.966" ry="0" fill="#247083"/>
+  <rect x="234.62" y="624.91" width="143.84" height="61.084" ry="0" fill="#2c89a0"/>
+  <rect x="354.61" y="123.46" width="24.242" height="210.61" fill="#2c89a0"/>
+  <rect x="378.55" y="123.56" width="24.242" height="210.61" fill="#237183"/>
+  <ellipse cx="379.94" cy="119.62" rx="75" ry="67.5" fill="#237183"/>
+  <ellipse cx="374.97" cy="118.76" rx="57.583" ry="55.316" fill="#2c89a0"/>
+  <ellipse cx="385.4" cy="119.67" rx="55.316" ry="59.85" fill="#247083"/>
+  <rect transform="scale(1,-1)" x="278.01" y="-922.72" width="103.77" height="174.41" ry="0" fill="#2c89a0"/>
+  <rect transform="scale(1,-1)" x="378.61" y="-922.72" width="103.77" height="174.41" ry="0" fill="#247083"/>
+  <rect x="736.1" y="409.61" width="23.562" height="138.62" ry="14.852" fill="#216778" fill-opacity=".68844"/>
+  <rect x="-2.199" y="409.61" width="23.562" height="138.62" ry="14.852" fill="#216778" fill-opacity=".68844"/>
+  <ellipse cx="550.1" cy="497.73" rx="30.453" ry="24.622" fill="#333" fill-opacity=".68844"/>
+  <ellipse cx="377.01" cy="714.14" rx="99.783" ry="20.734" fill="#333" fill-opacity=".68844"/>
+  <ellipse cx="218.7" cy="497.73" rx="30.453" ry="24.622" fill="#333" fill-opacity=".68844"/>
+ </g>
+</svg>
