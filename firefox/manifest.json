@@ -1,8 +1,8 @@
 {
-  "description": "Shows authentication information, that scripts can use to access sites that use DDoS protection services like Cloudflare",
+  "description": "Copies authentication information from your browser to your clipboard so you can pass it to scripts, which can use that information to access sites that use DDoS protection services like Cloudflare",
   "manifest_version": 2,
   "name": "NoRobot Exporter",
-  "version": "0.1",
+  "version": "0.1.0",
   "icons": {
     "48": "ico/norobot_48.png",
     "64": "ico/norobot_64.png",
@@ -12,7 +12,8 @@
 
   "applications": {
     "gecko": {
-      "strict_min_version": "50.0"
+      // 53 contextualIdentities, 63 clipboard.writeText
+      "strict_min_version": "63.0"
     }
   },
 
