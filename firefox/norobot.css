@@ -43,12 +43,6 @@ html, body {
     /* min-size before remaining space is distributed */
     flex-basis: 15%;
 }
-.button-addon * {
-    cursor: pointer;
-}
 .ico-container {
-    width: 100%;
-    height: 100%;
-    color: #fff;
-    background-color: #fff;
+    filter: invert(1);
 }

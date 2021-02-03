@@ -21,7 +21,8 @@ with zipfile.ZipFile(out_zip_file, 'x', compression=zipfile.ZIP_DEFLATED) as myz
         # relative paths given will have the same path in the archive even paths including ..
         # abspaths have the drive letter removed
         for gl in ["firefox/*.js", "firefox/*.html", "firefox/*.json",
-                   "firefox/*.css", "firefox/ico/*.png"]:
+                   # *.* doesn't match files starting with a '.'
+                   "firefox/*.css", "firefox/ico/*.*"]:
             for fn in glob.iglob(gl):
                 # fn is relative!!
                 print("Added:", fn, end=' ')
