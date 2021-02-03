@@ -1,5 +1,5 @@
 # NoRobot Exporter
-Copies authentication information from your browser to your clipboard so you can pass it to scripts, which can use that information to access sites that use DDoS protection services like Cloudflare.
+Copies authentication information from your browser to your clipboard or downloads it to disk so you can pass it to scripts, which can use that information to access sites that use DDoS protection services like Cloudflare.
 
 ## Sources
 
