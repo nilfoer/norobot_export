@@ -9,6 +9,7 @@
     "96": "ico/norobot_96.png",
     "128": "ico/norobot_128.png"
   },
+  "web_accessible_resources": ["ico/download-solid.svg"],
 
   "applications": {
     "gecko": {
@@ -35,6 +36,6 @@
     "default_popup": "export_popup.html"
   },
   
-  "permissions": ["cookies", "<all_urls>", "activeTab", "clipboardWrite", "contextualIdentities"]
+  "permissions": ["cookies", "<all_urls>", "activeTab", "clipboardWrite", "downloads", "contextualIdentities"]
 
 }

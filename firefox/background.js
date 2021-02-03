@@ -21,9 +21,9 @@ function generateNetscapeCookieFile(cookies, user_agent) {
     // insert User-Agent that is needed to assume the browser's identity (as far
     // as DDoS protection is concerned) as a comment so it's still a valid cookies.txt
     let str_builder = [
-        '# Netscape HTTP Cookie File',
-        '# https://curl.haxx.se/rfc/cookie_spec.html',
-        `# User-Agent: ${user_agent}`,
+        '# Netscape HTTP Cookie File\n',
+        '# https://curl.haxx.se/rfc/cookie_spec.html\n',
+        `# User-Agent: ${user_agent}\n\n`,
     ]
 
     
@@ -48,10 +48,12 @@ function generateNetscapeCookieFile(cookies, user_agent) {
             cookie.session || !cookie.expirationDate ? 0 : cookie.expirationDate,
             cookie.name,
             cookie.value,
-        ].join('\t'));
+        ].join('\t') + '\n');  // append newline since we can't join when creating a Blob
     }
 
-    return str_builder.join('\n');
+    // need to convert to Blob later and that expects a sequence
+    // return str_builder.join('\n');
+    return str_builder
 }
 
 function getCookiesByName(store_id, name) {
@@ -63,7 +65,7 @@ function getCookiesByName(store_id, name) {
 
 // extension button clicked
 // browser.browserAction.onClicked.addListener(() => {});
-function getCookiesByStoreId(store_id) {
+function getCookiesByStoreId(store_id, download) {
     // DDoS protection by cloudflare checks that we use the same User-Agent as the
     // browser that passed the js challenge
     let user_agent = window.navigator.userAgent;
@@ -129,9 +131,60 @@ function getCookiesByStoreId(store_id) {
             filtered_cookies_in_store = clearance_cookies.concat(uid_cookies_filtered);
 
             if (filtered_cookies_in_store.length > 0) {
-                navigator.clipboard.writeText(
-                    generateNetscapeCookieFile(
-                        filtered_cookies_in_store, user_agent)).then(function() {
+                if (download) {
+                    let cookie_lines = generateNetscapeCookieFile(
+                        filtered_cookies_in_store, user_agent);
+
+                    if (!cookie_lines) {
+                        /* failed */
+                        console.log("FAILED to generate cookies file!");
+                        browser.runtime.sendMessage({
+                            action: "copy_cookies",
+                            store_id: store_id,
+                            result: "fail"
+                        });
+                        return;
+                    }
+
+                    // users will notice success since a file dialog opens
+                    //
+                    // use donwloads api to download a file with a save as dialog
+                    // downloads.download() needs a url
+                    // we can use URL.createObjectURL() to assign an url to a File or Blob
+                    // -> so first create Blob from our cookie file content
+                    // contains a concatenation of all of the data in the array passed into the constructor
+                    let blob = new Blob(cookie_lines);
+                    const temp_url = URL.createObjectURL(blob);
+
+                    // watch for completed/faild downloads and if it matches our blob url
+                    // clean up the temp url
+                    browser.downloads.onChanged.addListener(function cleanUpTempBlob(downloadDelta) {
+                        // arrow funcs have no self-referencing
+                        // downloads.StringDelta for state (downloads.State)
+                        if (downloadDelta.state.current === 'complete' ||
+                            downloadDelta.state.current === 'interrupted')
+                        {
+                            // fail or success -> check if it's our temp blob
+                            let get_dlid = browser.downloads.search(downloadDelta.id);
+                            get_dlid.then((matching_dlitems) => {
+                                for (dlitem of matching_dlitems) {
+                                    if (dlitem.url == temp_url) {
+                                        // dlitem matches our temporary blob url
+                                        URL.revokeObjectURL(temp_url);
+                                        browser.downloads.onChanged.removeListener(cleanUpTempBlob);
+                                    }
+                                }
+                            });
+                        }
+                    });
+
+                    browser.downloads.download({
+                        saveAs: true, filename: 'cookies.txt',
+                        url: temp_url
+                    });
+                } else {
+                    navigator.clipboard.writeText(generateNetscapeCookieFile(
+                        filtered_cookies_in_store, user_agent).join('')).then(function() {
                             /* clipboard successfully set */
                             console.log("Cookies copied to clip!");
                             browser.runtime.sendMessage({
@@ -148,6 +201,7 @@ function getCookiesByStoreId(store_id) {
                                 result: "fail"
                             });
                         });
+                }
             } else {
                 console.log("No relevant cookies found in cookie store", found_store.id);
                 // don't send fail message otherwise user will be confused
@@ -187,7 +241,7 @@ function handleMessage(req, sender, sendResponse) {
                                           envs: env_arr });
         });
     } else if (req.action == "get_cookies") {
-        getCookiesByStoreId(req.store_id);
+        getCookiesByStoreId(req.store_id, req.download);
     }
 }
 
