@@ -59,7 +59,14 @@ function generateNetscapeCookieFile(cookies, user_agent) {
 function getCookiesByName(store_id, name) {
     // getAll gets all cookies matching the details object that takes arguments
     // like name, storeId etc.
-    let cookie_getter = browser.cookies.getAll({name: name, storeId: store_id});
+    // partitionKey: {} includes both partitioned (CHIPS) and unpartitioned cookies.
+    // Without this, partitioned cookies (e.g. cf_clearance with a Partition Key)
+    // are invisible to the API.
+    let cookie_getter = browser.cookies.getAll({
+        name: name,
+        storeId: store_id,
+        partitionKey: {}
+    });
     return cookie_getter;
 }
 
