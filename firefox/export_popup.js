@@ -1,5 +1,39 @@
 const dl_icon_url = browser.runtime.getURL("ico/download-solid.svg");
 
+// --- Settings toggle and persistence ---
+document.getElementById("settings-toggle").addEventListener("click", () => {
+    let section = document.getElementById("settings-section");
+    let toggle = document.getElementById("settings-toggle");
+    if (section.style.display === "none") {
+        section.style.display = "";
+        toggle.textContent = "- Custom cookie patterns";
+        // Load saved patterns on first open
+        if (!section.dataset.loaded) {
+            section.dataset.loaded = "1";
+            browser.storage.local.get("custom_patterns").then((result) => {
+                if (result.custom_patterns) {
+                    document.getElementById("custom-patterns").value =
+                        result.custom_patterns;
+                }
+            });
+        }
+    } else {
+        section.style.display = "none";
+        toggle.textContent = "+ Custom cookie patterns";
+    }
+});
+
+document.getElementById("save-patterns").addEventListener("click", () => {
+    let val = document.getElementById("custom-patterns").value;
+    browser.storage.local.set({ custom_patterns: val }).then(() => {
+        let status = document.getElementById("settings-status");
+        status.textContent = "Saved!";
+        setTimeout(() => { status.textContent = ""; }, 1500);
+    });
+});
+
+// --- Cookie export ---
+
 function handleButtonClick(e) {
     let store_id = e.target.dataset.storeId;
     console.log("Clicked", store_id);

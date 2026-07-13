@@ -14,6 +14,15 @@
   <div class="text-section-header" id="Title">Get norobot info for:</div>
 </header>
 
+<div id="settings-toggle" class="settings-toggle">+ Custom cookie patterns</div>
+<div id="settings-section" class="settings-section" style="display:none">
+  <label for="custom-patterns">Additional patterns (one per line, * = wildcard):</label>
+  <textarea id="custom-patterns" rows="4"
+    placeholder="__Secure-mysite_playback&#10;my_custom_cookie&#10;analytics_*"></textarea>
+  <div id="settings-status"></div>
+  <button id="save-patterns" class="save-btn">Save</button>
+</div>
+
 <div id='container'></div>
 </div>
 

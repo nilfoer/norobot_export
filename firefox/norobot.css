@@ -46,3 +46,51 @@ html, body {
 .ico-container {
     filter: invert(1);
 }
+.settings-toggle {
+    color: #0a84ff;
+    cursor: pointer;
+    font-size: 0.85em;
+    margin: 0.4em 0;
+    user-select: none;
+}
+.settings-toggle:hover {
+    text-decoration: underline;
+}
+.settings-section {
+    margin: 0.3em 0 0.5em;
+    padding: 0.5em;
+    background: #f0f0f4;
+    border-radius: 4px;
+}
+.settings-section label {
+    display: block;
+    font-size: 0.8em;
+    margin-bottom: 0.3em;
+    color: #515151;
+}
+.settings-section textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: monospace;
+    font-size: 0.85em;
+    resize: vertical;
+}
+.save-btn {
+    margin-top: 0.4em;
+    padding: 3px 12px;
+    border: none;
+    border-radius: 3px;
+    background: #0a84ff;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.85em;
+}
+.save-btn:hover {
+    background: #0060df;
+}
+#settings-status {
+    display: inline;
+    margin-left: 0.5em;
+    font-size: 0.8em;
+    color: #2a8a4e;
+}

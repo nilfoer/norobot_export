@@ -1,3 +1,21 @@
+// Cookie name patterns to export. Users can add additional patterns via the
+// settings UI, which are stored in browser.storage.local and merged with this list.
+const DEFAULT_PATTERNS = [
+    'cf_clearance',
+    '__cfduid',
+    '__cf_bm',
+    '__cflb',
+    '__cfruid',
+    '__Secure-*',
+];
+
+// Glob-style pattern matching: * matches any sequence of characters,
+// everything else is literal.
+function matchGlob(pattern, str) {
+    let re = pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*');
+    return new RegExp('^' + re + '$').test(str);
+}
+
 // http://www.cookiecentral.com/faq/#3.5
 // The layout of Netscape's cookies.txt file is such that each line contains
 // one name-value pair. An example cookies.txt file may have an entry that
@@ -56,18 +74,18 @@ function generateNetscapeCookieFile(cookies, user_agent) {
     return str_builder
 }
 
-function getCookiesByName(store_id, name) {
-    // getAll gets all cookies matching the details object that takes arguments
-    // like name, storeId etc.
-    // partitionKey: {} includes both partitioned (CHIPS) and unpartitioned cookies.
-    // Without this, partitioned cookies (e.g. cf_clearance with a Partition Key)
-    // are invisible to the API.
-    let cookie_getter = browser.cookies.getAll({
-        name: name,
+function getCookiesByPatterns(store_id, patterns) {
+    // Fetch ALL cookies from the store (partitioned + unpartitioned).
+    // We can't use getAll with name patterns since the API only accepts exact
+    // names, so we fetch everything and filter client-side.
+    return browser.cookies.getAll({
         storeId: store_id,
         partitionKey: {}
+    }).then(all_cookies => {
+        return all_cookies.filter(cookie =>
+            patterns.some(pat => matchGlob(pat, cookie.name))
+        );
     });
-    return cookie_getter;
 }
 
 // extension button clicked
@@ -100,44 +118,35 @@ function getCookiesByStoreId(store_id, download) {
             return;
         }
 
-        let filtered_cookies_in_store = []
-
-        // technically we only need the cf_clearance cookie and the User-Agent header
-        // but let's get it anyway in case they change it
-        let get_clearance_cookies = getCookiesByName(found_store.id, 'cf_clearance');
-        let get_uid_cookies = getCookiesByName(found_store.id, '__cfduid');
-
-        // array won't be populated if we pass it on normally
-        // need to use then to do it after the 2 populating functions are done
-        // use Promise.all to wait on the two populators
-        // return values will be in an array in the same order we passed
-        // the Promises in
-        Promise.all([get_clearance_cookies, get_uid_cookies]).then((cookies) => {
-            // use destructuring assignment to unpack the values
-            let clearance_cookies, uid_cookies;
-            [clearance_cookies, uid_cookies] = cookies
-
-            // since the __cfduid is useless without the cf_clearance cookie
-            // filter the duid cookies by having a clearance cookie for the same domain
-            let domain_to_cookie = {};
-            for (cl_cookie of clearance_cookies) {
-                domain_to_cookie[cl_cookie.domain] = 1;
+        // Load user-defined patterns from storage and merge with defaults
+        let getting_patterns = browser.storage.local.get('custom_patterns');
+        getting_patterns.then((result) => {
+            let user_patterns = [];
+            if (result.custom_patterns) {
+                user_patterns = result.custom_patterns
+                    .split('\n')
+                    .map(p => p.trim())
+                    .filter(p => p.length > 0);
             }
-            // duid cookies that also have cf_clearance cookie counterpart
-            let uid_cookies_filtered = [];
-            for (uid_cookie of uid_cookies) {
-                if (uid_cookie.domain in domain_to_cookie) {
-                    uid_cookies_filtered.push(uid_cookie);
-                }
-            }
-            
-            // extend arrya by unpacking cookies array with ... into push that
-            // normally only takes one arg
-            // filtered_cookies_in_store.push(...cookies);
-            // or use concat
-            filtered_cookies_in_store = clearance_cookies.concat(uid_cookies_filtered);
+            let combined_patterns = DEFAULT_PATTERNS.concat(user_patterns);
 
-            if (filtered_cookies_in_store.length > 0) {
+            // Fetch all cookies matching any pattern
+            getCookiesByPatterns(found_store.id, combined_patterns).then((all_matched) => {
+                // "primary" cookies (non-__ prefixed) are always exported.
+                // "__" prefixed cookies are only exported if a primary cookie
+                // exists for the same domain — otherwise they're useless on
+                // their own (e.g. __cfduid without cf_clearance).
+                let primary = all_matched.filter(c => !c.name.startsWith('__'));
+                let dependent = all_matched.filter(c => c.name.startsWith('__'));
+
+                let domains_with_primary = new Set(primary.map(c => c.domain));
+                let filtered_dependent = dependent.filter(c =>
+                    domains_with_primary.has(c.domain)
+                );
+
+                let filtered_cookies_in_store = primary.concat(filtered_dependent);
+
+                if (filtered_cookies_in_store.length > 0) {
                 if (download) {
                     let cookie_lines = generateNetscapeCookieFile(
                         filtered_cookies_in_store, user_agent);
@@ -219,8 +228,9 @@ function getCookiesByStoreId(store_id, download) {
                 });
             }
 
-        });
-    });
+            }); // getCookiesByPatterns.then
+        }); // getting_patterns.then
+    }); // cookie_stores.then
 }
 
 function handleMessage(req, sender, sendResponse) {
